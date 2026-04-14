@@ -193,7 +193,7 @@
         .venture-footer {
             font-family: 'Georgia', serif;
             position: absolute;
-            bottom: 60px;
+            bottom: 60px; 
             font-size: 12px;
             letter-spacing: 4px;
             text-transform: uppercase;
@@ -244,8 +244,8 @@
 
                 <div id="credentialFields">
                     <div class="input-wrapper">
-                        <label>Corp. ID</label>
-                        <input type="text" id="empID" placeholder="e.g. 10056">
+                        <label>Branch. ID</label>
+                        <input type="text" id="bidIn" placeholder="e.g. LUCK">
                     </div>
 
                     <div class="input-wrapper">
@@ -268,100 +268,146 @@
             <div class="venture-footer">A Malviya Venture</div>
         </div>
     </div>
+    
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    
+    // Your specific Firebase configuration
+    const firebaseConfig = {
+        apiKey: "Your API KEY goes here",
+        authDomain: "Your domain as in config",
+        projectId: "Your project ID as in Project Overview>General",
+        storageBucket: "<your-project-id.firebasestorage.app",
+        messagingSenderId: "enter", //scroll at the bottom of general Project Overview page to find in config files
+        appId: "find in config files"
+    };
 
-    <script>
-        // 1. Clock Logic
-        function updateClock() {
-            const now = new Date();
-            const istOptions = {
-                timeZone: 'Asia/Kolkata',
-                year: 'numeric', month: '2-digit', day: '2-digit',
-                hour: '2-digit', minute: '2-digit', second: '2-digit',
-                hour12: false
-            };
-            const formatter = new Intl.DateTimeFormat('en-GB', istOptions);
-            const parts = formatter.formatToParts(now);
-            const d = {};
-            parts.forEach(p => d[p.type] = p.value);
-            const ms = String(now.getMilliseconds()).padStart(3, '0');
-            document.getElementById('ist-clock').textContent = 
-                `${d.year}:${d.month}:${d.day}:${d.hour}:${d.minute}:${d.second}:${ms}`;
-        }
-        setInterval(updateClock, 1);
+    // Initialize Firebase and Firestore
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-        // 2. Intelligent Filter Data
-        const departments = [
-            { short: 'EXM', full: 'Example Corp.', hasLogo: false },
-            { short: 'EXT', full: 'Excise & Taxation Dept.', hasLogo: false },
-            { short: 'PWD', full: 'Public Works Department', hasLogo: false },
-            { short: 'AGRI', full: 'Department of Agriculture', hasLogo: false },
-            { short: 'RVNU', full: 'Department of Revenue', hasLogo: false },
-            { short: 'UPSWC', full: 'Uttar Pradesh State Warehousing Corporation' },
-            { short: 'FSSAI', full: 'Food Safety and Standards Authority of India' },
-            { short: 'RBI', full: 'Reserve Bank of India' },
-            { short: 'UPPCL', full: 'UP Power Corporation Limited' },
-            { short: 'GSTN', full: 'Goods and Services Tax Network' }
-        ];
+    // 1. Clock Logic (Preserved)
+    function updateClock() {
+        const now = new Date();
+        const istOptions = {
+            timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit',
+            hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+        };
+        const formatter = new Intl.DateTimeFormat('en-GB', istOptions);
+        const parts = formatter.formatToParts(now);
+        const d = {};
+        parts.forEach(p => d[p.type] = p.value);
+        const ms = String(now.getMilliseconds()).padStart(3, '0');
+        document.getElementById('ist-clock').textContent = 
+            `${d.year}:${d.month}:${d.day}:${d.hour}:${d.minute}:${d.second}:${ms}`;
+    }
+    setInterval(updateClock, 1);
 
-        const officeSearch = document.getElementById('officeSearch');
-        const suggestionsBox = document.getElementById('suggestions');
-        const credentialFields = document.getElementById('credentialFields');
+    // 2. Department Filter Data
+    const departments = [
+        { short: 'Example Corporation', full: 'EXM' },
+        { short: 'FSSAI', full: 'Food Safety and Standards Authority of India' },
+        { short: 'RBI', full: 'Reserve Bank of India' },
+        { short: 'UPPCL', full: 'UP Power Corporation Limited' },
+        { short: 'GSTN', full: 'Goods and Services Tax Network' }
+    ];
+
+    const officeSearch = document.getElementById('officeSearch');
+    const suggestionsBox = document.getElementById('suggestions');
+    const credentialFields = document.getElementById('credentialFields');
+    const submitBtn = document.getElementById('submitBtn');
+    let officeSelected = false;
+
+    officeSearch.addEventListener('input', (e) => {
+        const val = e.target.value.toLowerCase();
+        suggestionsBox.innerHTML = '';
+        if (val.length < 1) { suggestionsBox.style.display = 'none'; return; }
+
+        const filtered = departments.filter(d => d.short.toLowerCase().includes(val) || d.full.toLowerCase().includes(val));
+
+        if (filtered.length > 0) {
+            suggestionsBox.style.display = 'block';
+            filtered.forEach(dept => {
+                const div = document.createElement('div');
+                div.className = 'sugg-item';
+                div.innerHTML = `<strong>${dept.short}</strong> — ${dept.full}`;
+                div.onclick = () => selectDepartment(dept);
+                suggestionsBox.appendChild(div);
+            });
+        } else { suggestionsBox.style.display = 'none'; }
+    });
+
+    function selectDepartment(dept) {
+        officeSearch.value = dept.short;
+        suggestionsBox.style.display = 'none';
+        credentialFields.style.display = 'block';
+        setTimeout(() => {
+            credentialFields.style.opacity = '1';
+            credentialFields.style.transform = 'translateY(0)';
+        }, 10);
+        submitBtn.innerText = 'Continue';
+        officeSelected = true;
+    }
+
+    // 3. SERVER-DEPENDENT LOGIN LOGIC
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const code = document.getElementById('password').value;
+        const enteredBID = document.getElementById('bidIn').value;
+        const enteredOffice = document.getElementById('officeSearch').value;
         const submitBtn = document.getElementById('submitBtn');
-        let officeSelected = false;
 
-        officeSearch.addEventListener('input', (e) => {
-            const val = e.target.value.toLowerCase();
-            suggestionsBox.innerHTML = '';
-            if (val.length < 1) { suggestionsBox.style.display = 'none'; return; }
+        // BIN (Branch Login) = 4 Digits
+        if (code.length === 4) {
+            submitBtn.innerText = 'Verifying Branch...';
+            submitBtn.disabled = true;
 
-            const filtered = departments.filter(d => d.short.toLowerCase().includes(val) || d.full.toLowerCase().includes(val));
+            try {
+                // Fetch the branch document where Document ID is the BIN
+                const branchRef = doc(db, "branches", code);
+                const branchSnap = await getDoc(branchRef);
 
-            if (filtered.length > 0) {
-                suggestionsBox.style.display = 'block';
-                filtered.forEach(dept => {
-                    const div = document.createElement('div');
-                    div.className = 'sugg-item';
-                    div.innerHTML = `<strong>${dept.short}</strong> — ${dept.full}`;
-                    div.onclick = () => selectDepartment(dept);
-                    suggestionsBox.appendChild(div);
-                });
-            } else { suggestionsBox.style.display = 'none'; }
-        });
-
-        function selectDepartment(dept) {
-            officeSearch.value = dept.short;
-            suggestionsBox.style.display = 'none';
-            
-            // Reveal hidden fields with animation
-            credentialFields.style.display = 'block';
-            setTimeout(() => {
-                credentialFields.style.opacity = '1';
-                credentialFields.style.transform = 'translateY(0)';
-            }, 10);
-            
-            submitBtn.innerText = 'Continue';
-            officeSelected = true;
-        }
-
-        document.getElementById('loginForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const code = document.getElementById('password').value;
-            const submitBtn = document.getElementById('submitBtn');
-            
-            if (code.length === 4) {
-                submitBtn.innerText = 'Redirecting to Branch...';
-                setTimeout(() => { window.location.href = 'branch.html'; }, 800);
-            } else if (code.length === 6) {
-                submitBtn.innerText = 'Redirecting...';
-                setTimeout(() => { window.location.href = 'attendance.html'; }, 800);
-            } else {
-                alert("Please enter a 4-digit BIN or 6-digit PIN.");
+                if (branchSnap.exists()) {
+                    const data = branchSnap.data();
+                    
+                    // Match validation
+                    if (data.bid === enteredBID && data.branchName === enteredOffice) {
+                        sessionStorage.setItem('currentBIN', code);
+                        window.location.href = 'branch.html'; 
+                    } else {
+                        alert("Credentials mismatch for the selected department/office.");
+                        submitBtn.disabled = false;
+                        submitBtn.innerText = 'Continue';
+                    }
+                } else {
+                    alert("Invalid BIN. Branch not found.");
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = 'Continue';
+                }
+            } catch (err) {
+                console.error("Login Error:", err);
+                alert("Connection error. Please try again.");
+                submitBtn.disabled = false;
+                submitBtn.innerText = 'Continue';
             }
-        });
+        } 
+        // PIN (Individual Login) = 6 Digits
+        else if (code.length === 6) {
+            submitBtn.innerText = 'Verifying Identity...';
+            // Logic for PIN verification across all branches will be added in Step 2
+            alert("Direct PIN login via landing page is in development. Please login via Branch dashboard.");
+            submitBtn.innerText = 'Continue';
+        } 
+        else {
+            alert("Please enter a 4-digit BIN or 6-digit PIN.");
+        }
+    });
 
-        document.addEventListener('click', (e) => {
-            if (!officeSearch.contains(e.target)) suggestionsBox.style.display = 'none';
-        });
-    </script>
+    document.addEventListener('click', (e) => {
+        if (!officeSearch.contains(e.target)) suggestionsBox.style.display = 'none';
+    });
+</script>
 </body>
 </html>
