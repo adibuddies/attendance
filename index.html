@@ -152,14 +152,14 @@
 
         .forgot-link:hover { color: var(--accent-gold); }
 
-        /* 5. RIGHT BRANDING SIDE */
+        /* 5. RIGHT BRANDING SIDE (Refined Positioning) */
         .brand-side {
             flex: 1;
             background: #fafcfc;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: center; /* Initial center for the main logo stack */
             padding: 60px 40px;
             position: relative;
         }
@@ -193,7 +193,7 @@
         .venture-footer {
             font-family: 'Georgia', serif;
             position: absolute;
-            bottom: 60px; 
+            bottom: 60px; /* Locked at bottom in footer style */
             font-size: 12px;
             letter-spacing: 4px;
             text-transform: uppercase;
@@ -270,10 +270,11 @@
     </div>
     
 <script type="module">
+    sessionStorage.clear();
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
     
-    // Your specific Firebase configuration
+    // Your specific Firebase configuration from Screenshot (366)
     const firebaseConfig = {
         apiKey: "Your API KEY goes here",
         authDomain: "Your domain as in config",
@@ -307,10 +308,6 @@
     // 2. Department Filter Data
     const departments = [
         { short: 'Example Corporation', full: 'EXM' },
-        { short: 'FSSAI', full: 'Food Safety and Standards Authority of India' },
-        { short: 'RBI', full: 'Reserve Bank of India' },
-        { short: 'UPPCL', full: 'UP Power Corporation Limited' },
-        { short: 'GSTN', full: 'Goods and Services Tax Network' }
     ];
 
     const officeSearch = document.getElementById('officeSearch');
