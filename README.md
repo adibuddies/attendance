@@ -6,6 +6,27 @@ This project was developed for the **Hack Club "Flavortown"** challenge, focusin
 
 ---
 
+You can test the live deployment directly at: https://miraclepresently.web.app or https://pingin-presently.web.app
+Test Credentials:
+1. Department/Office: Search for "Example Corporation"
+2. Branch ID.: HEAD
+{this means for the Head Office}
+3. BIN: 0001
+{this takes to attendance.html, you could try entering any PIN but it won't login because the functionality wasn't developed}
+4. On the branch dashboard, click an employee card and enter their 6-digit PIN to access the final camera capture screen.
+Vikram- 123456
+Ananya- 123457
+Rahul Singh- 123458
+Priya- 123459
+Rahul Kumar- 123460
+Arjun- 123461
+Parmal- 123462
+
+If the browser window loses focus (e.g., you click on another monitor, open a screen recorder, or press a screenshot shortcut), the UI will instantly black out to protect PII.
+Simply click back into the window to restore visibility.
+
+---
+
 ## 🚀 Key Features
 * **Dynamic Authentication**: Secure login using a 4-digit BIN for branches or a 6-digit PIN for individuals.
 * **Data Sync**: Custom Python and Node.js tools to convert Excel records into structured Firestore documents.
