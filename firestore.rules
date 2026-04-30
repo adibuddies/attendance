@@ -12,6 +12,17 @@ service cloud.firestore {
       // Make sure to write security rules for your app before that time, or
       // else all client requests to your database will be denied until you
       // update your rules.
+    match /branches/{bin} {
+      allow read: if true;
+      // Allow attendance.html to fetch the logged-in employee record
+      match /employees/{empId} {
+        allow read: if true;
+      }
+    }
+    // Allow capturing attendance logs for the day
+    match /attendance_logs/{date}/entries/{empId} {
+      allow write: if true;
+    }
       allow read, write: if request.time < timestamp.date(2026, 4, 24);
     }
   }
