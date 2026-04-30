@@ -20,6 +20,7 @@ This project was developed for the **Hack Club "Flavortown"** challenge, focusin
 | :--- | :--- |
 | `index.html` | The primary login portal. |
 | `branch.html` | The branch dashboard for successful logins. |
+| `attendance.html` | The personnel dashboard for marking attendance with live photo and location. |
 | `tools/` | Core program files for database management. |
 | ├── `convert.py` | Translates `.xlsx` employee records into structured `.json`. |
 | ├── `upload.js` | A Node.js utility to push JSON data into Cloud Firestore. |
