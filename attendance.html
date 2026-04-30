@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Miracle | Attendance Page</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Exact match to your core website variables */
+            --bg: #f4f7f6;
+            --card-bg: #ffffff;
+            --text-primary: #1a1a1a;
+            --text-secondary: #5f6368;
+            --text-tertiary: #0B0B45;
+            --accent-gold: #c5a059;
+            --border: #e0e0e0;
+            --clock-strip: #e0e4e8;
+            
+            /* High-legibility jewel tones for attendance (strong but elegant) */
+            --present-bg: #ecfdf5; --present-text: #065f46; --present-border: #10b981; 
+            --absent-bg: #fef2f2; --absent-text: #991b1b; --absent-border: #ef4444; 
+            --leave-bg: #fffbeb; --leave-text: #92400e; --leave-border: #f59e0b; 
+            
+            --transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+
+        body {
+            background-color: var(--bg);
+            background-image: radial-gradient(circle at 1px 1px, #e0e0e0 1px, transparent 0);
+            background-size: 32px 32px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: var(--text-primary);
+            position: relative;
+        }
+
+        /* ANTI-SCRAPING & SCREENSHOT MITIGATIONS */
+        .secure-data {
+            user-select: none; -webkit-user-select: none; pointer-events: none;
+        }
+
+        body.blurred {
+            filter: brightness(0);
+            background: #000 !important;
+        }
+        @media print { body { display: none; } }
+
+        /* TOP-RIGHT CLOCK - Matched to branch.html */
+        .ist-clock {
+            position: absolute; top: 2.5rem; right: 3.5rem;
+            font-family: monospace; font-size: 0.85rem;
+            color: var(--accent-gold); background: var(--clock-strip);
+            padding: 6px 14px; border-radius: 4px; letter-spacing: 1px; z-index: 1000;
+        }
+
+        /* HEADER - Matched to branch.html */
+        header {
+            padding: 4rem 4rem 2rem 4rem;
+            max-width: 1200px; width: 100%; margin: 0 auto;
+            display: flex; justify-content: space-between; align-items: flex-end;
+        }
+
+        .office-title {
+            font-family: 'EB Garamond', serif; font-size: 2.5rem;
+            font-style: italic; color: var(--accent-gold); line-height: 1;
+        }
+
+        .office-meta {
+            font-size: 0.6rem; font-family: 'EB Garamond', serif;text-transform: uppercase; letter-spacing: 3px;
+            color: var(--text-tertiary); margin-top: 5px; font-weight: 500;
+        }
+
+        /* MAIN CONTENT - Utilizing the 0 30px 60px shadow from index.html */
+        .dashboard-container {
+            display: flex; gap: 30px; padding: 0 4rem 4rem 4rem;
+            max-width: 1200px; width: 100%; margin: 0 auto; flex: 1;
+        }
+
+        .profile-side {
+            flex: 0.8; background: var(--card-bg);
+            border: 1px solid var(--border); border-radius: 4px;
+            padding: 40px 30px; display: flex; flex-direction: column; align-items: center;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.04); text-align: center;
+        }
+
+        .photo-frame {
+            width: 120px; height: 150px;
+            border: 1px solid var(--accent-gold); padding: 4px;
+            margin-bottom: 25px; background: #fafcfc;
+        }
+
+        .photo-frame img { width: 100%; height: 100%; object-fit: cover; }
+
+        .emp-name { font-family: 'EB Garamond', serif; font-size: 1.8rem; font-weight: 600; margin-bottom: 5px; }
+        .emp-role { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: var(--text-secondary); margin-bottom: 25px; }
+
+        .detail-row {
+            width: 100%; display: flex; justify-content: space-between;
+            padding: 14px 0; border-top: 1px solid #f9f9f9; font-size: 12px;
+        }
+
+        .detail-label { color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; font-size: 10px; font-weight: 600; }
+        .detail-val { font-weight: 600; color: var(--text-primary); }
+
+        .btn-action {
+            width: 100%; padding: 18px; background: #1a1a1a; color: white;
+            border: none; text-transform: uppercase; letter-spacing: 2px; font-size: 12px;
+            font-weight: 600; cursor: pointer; transition: var(--transition); margin-top: auto;
+        }
+
+        .btn-action:hover:not(:disabled) {
+            background: var(--accent-gold); box-shadow: 0 10px 20px rgba(197, 160, 89, 0.2); letter-spacing: 3px;
+        }
+        .btn-action:disabled { background: #e0e0e0; color: #a0a0a0; cursor: not-allowed; }
+
+        /* CALENDAR SIDE */
+        .calendar-side {
+            flex: 1.2; background: var(--card-bg);
+            border: 1px solid var(--border); border-radius: 4px; padding: 40px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.04);
+        }
+
+        .cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .cal-month { font-family: 'EB Garamond', serif; font-size: 1.8rem; font-weight: 600; }
+        
+        .cal-legend { display: flex; gap: 15px; font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600; }
+        .legend-item { display: flex; align-items: center; gap: 6px; }
+        .dot { width: 8px; height: 8px; border-radius: 50%; }
+        .dot.p { background: var(--present-border); }
+        .dot.a { background: var(--absent-border); }
+        .dot.l { background: var(--leave-border); }
+
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; }
+        .day-name { text-align: center; font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: var(--text-secondary); margin-bottom: 10px; font-weight: 600; }
+
+        .cal-day {
+            aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+            font-size: 14px; border: 1px solid var(--border); border-radius: 2px;
+            color: var(--text-primary); transition: var(--transition);
+        }
+
+        .cal-day.present { background: var(--present-bg); color: var(--present-text); border-color: var(--present-border); font-weight: 600; }
+        .cal-day.absent { background: var(--absent-bg); color: var(--absent-text); border-color: var(--absent-border); font-weight: 600; }
+        .cal-day.leave { background: var(--leave-bg); color: var(--leave-text); border-color: var(--leave-border); font-weight: 600; }
+        .cal-day.today { border: 1px solid var(--accent-gold); box-shadow: inset 0 0 0 1px var(--accent-gold); font-weight: 600; }
+        .cal-day.empty { border-color: transparent; }
+
+        /* CAMERA MODAL */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(244, 247, 246, 0.95); display: none; align-items: center; justify-content: center;
+            z-index: 2000; backdrop-filter: blur(5px);
+        }
+        
+        .camera-box {
+            background: var(--card-bg); padding: 50px; border: 1px solid var(--border);
+            text-align: center; max-width: 500px; width: 90%; box-shadow: 0 40px 80px rgba(0,0,0,0.05);
+        }
+
+        #cameraFeed { width: 100%; max-height: 300px; background: #000; margin-bottom: 20px; border-radius: 2px; }
+        .geo-text { font-size: 11px; color: var(--text-secondary); margin-bottom: 25px; font-family: monospace; letter-spacing: 1px; }
+        #canvasCapture { display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="ist-clock" id="ist-clock">0000:00:00:00:00:00:000</div>
+
+    <header>
+        <div>
+            <h1 class="office-title">Miracle</h1>
+            <p class="office-meta">ESTD. 2026</p>
+        </div>
+    </header>
+
+    <div class="dashboard-container">
+        <div class="profile-side">
+            <div class="photo-frame secure-data">
+                <canvas id="photoCanvas" width="120" height="150" style="width:100%; height:100%;"></canvas>
+            </div>
+            
+            <h2 class="emp-name secure-data" id="empName">Loading...</h2>
+            <p class="emp-role" id="empRole">Loading...</p>
+
+            <div class="detail-row secure-data">
+                <span class="detail-label">Employee ID</span>
+                <span class="detail-val secure-data" id="empId" style="color: var(--accent-gold);">----</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Entity</span>
+                <span class="detail-val" id="empBranch">Loading...</span>
+            </div>
+            <div class="detail-row secure-data">
+                <span class="detail-label">Branch Location</span>
+                <span class="detail-val" id="empLocation">Loading...</span>
+            </div>
+            <div class="detail-row" style="margin-bottom: 30px;">
+                <span class="detail-label">Shift Status</span>
+                <span class="detail-val" id="shiftStatus">Checking...</span>
+            </div>
+
+            <button class="btn-action" id="markBtn" onclick="initiateAttendance()">Mark Attendance</button>
+        </div>
+
+        <div class="calendar-side">
+            <div class="cal-header">
+                <div class="cal-month" id="monthLabel">April 2026</div>
+                <div class="cal-legend">
+                    <div class="legend-item"><div class="dot p"></div> Present</div>
+                    <div class="legend-item"><div class="dot a"></div> Absent</div>
+                    <div class="legend-item"><div class="dot l"></div> Leave</div>
+                </div>
+            </div>
+
+            <div class="calendar-grid" id="calendarGrid">
+                </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="cameraModal">
+        <div class="camera-box">
+            <h2 style="font-family: 'EB Garamond', serif; font-size: 2rem; margin-bottom: 5px;">Identity Scan</h2>
+            <p style="font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: var(--text-secondary); margin-bottom: 25px;">Please align your face</p>
+            
+            <video id="cameraFeed" autoplay playsinline></video>
+            <canvas id="canvasCapture"></canvas>
+            
+            <p class="geo-text" id="geoStatus">Fetching Coordinates...</p>
+            
+            <button class="btn-action" id="captureBtn">Verify & Submit</button>
+            <p onclick="closeModal()" style="margin-top: 25px; font-size: 10px; cursor: pointer; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1.5px; transition: color 0.3s;">Cancel</p>
+        </div>
+    </div>
+
+    
+    <script type="module">
+        window.addEventListener('pageshow', (event) => {
+            const navEntries = performance.getEntriesByType("navigation");
+            const isReload = navEntries.length > 0 && navEntries[0].type === 'reload';
+            const isBackForward = navEntries.length > 0 && navEntries[0].type === 'back_forward';
+            // event.persisted is true if the page is being loaded from the Back/Forward cache
+            if (event.persisted || isReload || isBackForward) {
+                sessionStorage.clear();
+                // .replace overwrites the history entry so they can't 'Forward' back in
+                window.location.replace('index.html');
+            }
+        });
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getStorage, ref, uploadString } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+
+        // Insert your Firebase config
+        const firebaseConfig = {
+             apiKey: "Your API KEY goes here",
+             authDomain: "Your domain as in config",
+             projectId: "Your project ID as in Project Overview>General",
+             storageBucket: "<your-project-id.firebasestorage.app",
+             messagingSenderId: "enter", //scroll at the bottom of general Project Overview page to find in config files
+             appId: "find in config files"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const storage = getStorage(app);
+
+        let empData = {};
+        // 1. CLOCK LOGIC
+        setInterval(() => {
+            const now = new Date();
+            const f = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+            const p = {}; f.formatToParts(now).forEach(x => p[x.type] = x.value);
+            document.getElementById('ist-clock').textContent = `${p.year}:${p.month}:${p.day}:${p.hour}:${p.minute}:${p.second}:${String(now.getMilliseconds()).padStart(3, '0')}`;
+        }, 1);
+
+        // 2. SECURITY (Screenshot mitigation blur)
+        window.addEventListener('blur', () => document.body.classList.add('blurred'));
+        window.addEventListener('focus', () => document.body.classList.remove('blurred'));
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) { document.body.classList.add('blurred'); }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            if (e.key === 'PrintScreen') {
+                document.body.classList.add('blurred');
+                navigator.clipboard.writeText(""); 
+                alert("Screenshots are prohibited.");
+            }
+        });
+
+        // 3. TIME WINDOW LOGIC
+        function checkTimeWindow(role) {
+            const now = new Date();
+            const h = now.getHours();
+            const m = now.getMinutes();
+            if ((h === 9 && m <= 30) || h === 19 || (h === 21 && m <= 30)) return { allowed: true, msg: "Morning Window Open" };
+            if (role === "Incharge") {
+                if (h === 16 && m >= 30 || h === 17 || h === 18 || h === 21) {
+                    return { allowed: true, msg: "Dispatch Window Open" };
+                }
+            }
+            return { allowed: false, msg: "Outside Shift Hours" };
+        }
+
+        // 4. MOCK DATA INIT
+        const bin = sessionStorage.getItem('currentBIN');
+        const empID = sessionStorage.getItem('currentEmpID');
+
+        if (!bin || !empID) { window.location.href = 'index.html'; }
+
+        async function loadPersonnelData() {
+            const empRef = doc(db, "branches", bin, "employees", empID);
+            const empSnap = await getDoc(empRef);
+            const branchSnap = await getDoc(doc(db, "branches", bin));
+            
+            if (empSnap.exists() && branchSnap.exists()) {
+                const fetched = empSnap.data();
+                const branchData = branchSnap.data();
+                Object.assign(empData, { id: empID, ...fetched });
+                
+                document.getElementById('empName').innerText = fetched.name;
+                document.getElementById('empRole').innerText = fetched.role;
+                document.getElementById('empId').innerText = empID.substring(0, 6); 
+                document.getElementById('empBranch').innerText = branchData.branchName;
+                document.getElementById('empLocation').innerText = branchData.location;
+
+                if (fetched.photoBase64) {
+                    const canvas = document.getElementById('photoCanvas');
+                    const ctx = canvas.getContext('2d');
+                    const img = new Image();
+                    img.onload = () => {
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    };
+                    img.src = fetched.photoBase64;
+                }
+
+                const shiftCheck = checkTimeWindow(empData.role);
+                const statusEl = document.getElementById('shiftStatus');
+                statusEl.innerText = shiftCheck.msg;
+
+                if (!shiftCheck.allowed) {
+                    document.getElementById('markBtn').disabled = true;
+                    statusEl.style.color = "var(--absent-text)";
+                } else {
+                    statusEl.style.color = "var(--present-text)";
+                }
+            }
+        }
+
+        loadPersonnelData();
+        
+        // 5. CALENDAR GENERATION
+        const grid = document.getElementById('calendarGrid');
+        const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+        days.forEach(d => grid.innerHTML += `<div class="day-name">${d}</div>`);
+        
+        const date = new Date();
+        const firstDay = new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+        const daysInMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+        
+        for (let i = 0; i < firstDay; i++) grid.innerHTML += `<div class="cal-day empty"></div>`;
+        for (let i = 1; i <= daysInMonth; i++) {
+            let cls = i === date.getDate() ? 'today' : (i < date.getDate() ? 'absent' : '');
+            grid.innerHTML += `<div class="cal-day ${cls}">${i}</div>`;
+        }
+
+        // 6. HARDWARE & PUSH LOGIC
+        let videoStream = null, loc = null;
+
+        window.initiateAttendance = function() {
+            document.getElementById('cameraModal').style.display = 'flex';
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
+                .then(stream => { videoStream = stream; document.getElementById('cameraFeed').srcObject = stream; });
+
+            navigator.geolocation.getCurrentPosition(
+                pos => {
+                    loc = `${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`;
+                    const geoEl = document.getElementById('geoStatus');
+                    geoEl.innerText = "GPS Lock Acquired";
+                    geoEl.style.color = "var(--present-text)";
+                },
+                err => {
+                    const geoEl = document.getElementById('geoStatus');
+                    geoEl.innerText = "GPS Required";
+                    geoEl.style.color = "var(--absent-text)";
+                }
+            );
+        };
+
+        window.closeModal = function() {
+            document.getElementById('cameraModal').style.display = 'none';
+            if (videoStream) videoStream.getTracks().forEach(t => t.stop());
+        };
+
+        document.getElementById('captureBtn').addEventListener('click', async () => {
+            if (!loc) return alert("Location access is required to mark attendance.");
+            
+            const btn = document.getElementById('captureBtn');
+            btn.innerText = "Processing..."; btn.disabled = true;
+
+            const video = document.getElementById('cameraFeed');
+            const canvas = document.getElementById('canvasCapture');
+            canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+            
+            const imgData = canvas.toDataURL('image/jpeg', 0.6);
+            const todayStr = new Date().toISOString().split('T')[0];
+            const imgPath = `attendance_captures/${todayStr}/${empData.id}.jpg`;
+
+            try {
+                await uploadString(ref(storage, imgPath), imgData, 'data_url');
+                await setDoc(doc(db, `attendance_logs/${todayStr}/entries/${empData.id}`), {
+                    timestamp: serverTimestamp(), status: "Present", location: loc, imageRef: imgPath
+                });
+                alert("Attendance Captured.");
+                closeModal();
+                btn.innerText = "Verify & Submit"; btn.disabled = false;
+                document.querySelector('.cal-day.today').classList.add('present');
+            } catch (err) {
+                console.error(err); alert("System Error."); btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
