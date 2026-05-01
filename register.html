@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Miracle | System Provisioning</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #f4f7f6; --card-bg: #ffffff; --text-primary: #1a1a1a; --accent-gold: #c5a059; --border: #e0e0e0; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg); display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+        .reg-box { background: var(--card-bg); width: 100%; max-width: 500px; padding: 50px; border: 1px solid var(--border); box-shadow: 0 30px 60px rgba(0,0,0,0.04); border-radius: 4px; }
+        h2 { font-family: 'EB Garamond', serif; font-style: italic; font-size: 2rem; margin-bottom: 30px; text-align: center; color: var(--accent-gold); }
+        .section-label { font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: #5f6368; margin: 20px 0 10px 0; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        .input-group { margin-bottom: 15px; }
+        label { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--accent-gold); margin-bottom: 5px; font-weight: 600; }
+        input { width: 100%; padding: 10px 0; border: none; border-bottom: 1px solid var(--border); outline: none; font-size: 14px; transition: 0.3s; }
+        input:focus { border-bottom-color: var(--accent-gold); }
+        .btn-reg { width: 100%; padding: 15px; background: #1a1a1a; color: white; border: none; text-transform: uppercase; letter-spacing: 2px; font-size: 11px; cursor: pointer; margin-top: 30px; transition: 0.3s; }
+        .btn-reg:hover { background: var(--accent-gold); }
+    </style>
+</head>
+<body>
+    <div class="reg-box">
+        <h2>Sign Up</h2>
+        <form id="regForm">
+            <p class="section-label">Branch Details</p>
+            <div class="input-group">
+                <label>Department Name (e.g. Flavortown Review)</label>
+                <input type="text" id="deptName" required>
+            </div>
+            <div class="input-group">
+                <label>Branch ID (4 Chars, e.g. TEST or FLAV)</label>
+                <input type="text" id="bid" maxlength="4" required>
+            </div>
+            <div class="input-group">
+                <label>Branch Location (e.g. Remote Office or Dvārakā)</label>
+                <input type="text" id="loc" required>
+            </div>
+            <div class="input-group">
+                <label>Create 4-Digit BIN (Your Branch Login Code)</label>
+                <input type="text" id="bin" maxlength="4" required>
+            </div>
+
+            <p class="section-label">First Employee (Reviewer Account)</p>
+            <div class="input-group">
+                <label>Employee Name</label>
+                <input type="text" id="empName" required>
+            </div>
+            <div class="input-group">
+              <label>Pay Grade</label>
+              <input type="text" id="payGrade" required>
+            </div>
+            <div class="input-group">
+                <label>Set 6-Digit PIN</label>
+                <input type="text" id="empPin" maxlength="6" required>
+            </div>
+
+            <button type="submit" class="btn-reg" id="regBtn">Register yourself</button>
+        </form>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, doc, setDoc, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // USE YOUR NEW FIREBASE CONFIG HERE
+        const firebaseConfig = {
+            apiKey: "Your API KEY goes here"
+            authDomain: "yourdomain.firebaseapp.com",
+            projectId: "Your project ID as in Project Overview>General",
+            storageBucket: "your-project-id.firebasestorage.app",
+            messagingSenderId: "enter", //scroll at the bottom of general Project Overview page to find in config files
+            appId: "find in config files"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        document.getElementById('regForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('regBtn');
+            btn.innerText = "Provisioning..."; btn.disabled = true;
+
+            const bin = document.getElementById('bin').value;
+            const bid = document.getElementById('bid').value;
+            const dept = document.getElementById('deptName').value;
+
+            try {
+                // 1. Create Branch
+                await setDoc(doc(db, "branches", bin), {
+                    branchName: dept,
+                    bid: bid,
+                    deptName: dept,
+                    location: document.getElementById('loc').value
+                });
+
+                // 2. Create Employee within that branch
+                const empRef = collection(db, "branches", bin, "employees");
+                await addDoc(empRef, {
+                    name: document.getElementById('empName').value,
+                    pin: document.getElementById('empPin').value,
+                    role: "Reviewer",
+                    payGrade: document.getElementById('payGrade').valus,
+                });
+
+                alert("System Provisioned! Use BIN " + bin + " on the login page.");
+                window.location.href = 'index.html';
+            } catch (err) {
+                console.error(err);
+                alert("Error: " + err.message);
+                btn.disabled = false; btn.innerText = "Provision System";
+            }
+        };
+    </script>
+</body>
+</html>
