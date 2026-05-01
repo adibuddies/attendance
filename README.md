@@ -5,6 +5,11 @@ This is an attendance management system designed for multi-branch organizations.
 This project was developed for the **Hack Club "Flavortown"** challenge, focusing on building a robust, portable data pipeline from Excel spreadsheets to a live Cloud Firestore database.
 
 ---
+NOTICE NOTICE NOTICE NOTICE NOTICE
+The final click 'Mark Attendance' turns to just an idle 'Processing...' because a Google Drive API function (Firebase Cloud ()) has not been added. Only when the same is added with clear instructions for invocations (sending live photo with revelant metadata- i.e. data, time, location in lat, long, etc.). 
+You may click on the REGISTER HERE! button on the login page to create your own creds. You can now create your own Department, Branch ID, and Reviewer PIN dynamically to test the entire functioning from start to finish.
+
+---
 
 You can test the live deployment directly at: https://miraclepresently.web.app or https://pingin-presently.web.app
 Test Credentials:
