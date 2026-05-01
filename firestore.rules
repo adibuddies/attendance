@@ -21,7 +21,7 @@ service cloud.firestore {
     }
     // Allow capturing attendance logs for the day
     match /attendance_logs/{date}/entries/{empId} {
-      allow write: if true;
+      allow read, write: if true;
     }
       allow read, write: if request.time < timestamp.date(2026, 4, 24);
     }
