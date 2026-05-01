@@ -307,9 +307,23 @@
     setInterval(updateClock, 1);
 
     // 2. Department Filter Data
-    const departments = [
-        { short: 'Example Corporation', full: 'EXM' },
-    ];
+    let departments = [];
+    async function loadDepartments() {
+        try {
+            const querySnapshot = await getDocs(collection(db, "branches"));
+            departments = querySnapshot.docs.map(doc => {
+                const data = doc.data();
+                return { 
+                    short: data.branchName, // Used for the search match
+                    full: data.bid        // Used as the subtitle in suggestions
+                    };
+                });
+                console.log("Departments synced from Firestore");
+            } catch (err) {
+                console.error("Failed to sync departments:", err);
+            }
+        }
+    loadDepartments();
 
     const officeSearch = document.getElementById('officeSearch');
     const suggestionsBox = document.getElementById('suggestions');
@@ -320,7 +334,7 @@
     officeSearch.addEventListener('input', (e) => {
         const val = e.target.value.toLowerCase();
         suggestionsBox.innerHTML = '';
-        if (val.length < 1) { suggestionsBox.style.display = 'none'; return; }
+        if (val.length < 1 || departments.length === 0) { suggestionsBox.style.display = 'none'; return; }
 
         const filtered = departments.filter(d => d.short.toLowerCase().includes(val) || d.full.toLowerCase().includes(val));
 
